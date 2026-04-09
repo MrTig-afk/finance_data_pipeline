@@ -1,4 +1,4 @@
-name: Weather Pipeline
+name: Finance Pipeline
 
 on:
   schedule:
