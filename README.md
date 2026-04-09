@@ -1,145 +1,152 @@
-# 🌤️ Weather Pipeline - Automated Data Engineering Platform
+# 📈 Stock Pipeline - Automated Global Stock Data Platform
 
-An end-to-end automated weather data pipeline that collects, stores, and serves live weather data for major cities around the world.
+An end-to-end automated data pipeline that collects, stores, and tracks hourly stock prices for 50+ global stocks across multiple markets.
 
 ## 📊 Architecture Visualization
 
 ```
-[Weather API]  -->  [GitHub Actions]  -->  [Supabase]  -->  [FastAPI]  -->  [Vercel]  -->  [Browser]
-   (live)            (every hour)          (PostgreSQL)     (API)         (host)         (JSON)
-                                                
-                    ┌─────────────────────────────────────────┐
-                    │                                         │
-                    ▼                                         │
-              [GitHub Actions]                                │
-              (scheduled trigger)                             │
-                    │                                         │
-                    ▼                                         │
-              [Python Script]                                 │
-              (fetch + transform)                             │
-                    │                                         │
-                    ▼                                         │
-              [Supabase DB]                                   │
-              (store records)                                 │
-                    │                                         │
-                    ▼                                         │
-              [FastAPI on Vercel]                             │
-              (REST endpoint)                                 │
-                    │                                         │
-                    ▼                                         │
-              [Browser / Mobile]                              │
-              (JSON response)                                 │
+Yahoo Finance API → GitHub Actions → Supabase (PostgreSQL)
+    (free)           (every hour)         (cloud DB)
+
+                         │
+                         ▼
+                   Historical Data
+                   (50+ stocks, hourly)
 ```
 
-## 🔄 Data Flow Table
+## 🔄 Data Flow
 
 | Step | Component | Action |
 |------|-----------|--------|
-| 1 | WeatherAPI.com | Live weather data source (temp, humidity, timestamp) |
-| 2 | GitHub Actions | Scheduled workflow runs every hour, executes Python script |
-| 3 | Python Script | Fetches data for 4 cities, handles errors, prepares records |
-| 4 | Supabase | Cloud PostgreSQL database stores all historical readings |
-| 5 | FastAPI | REST API endpoint queries database and returns JSON |
-| 6 | Vercel | Hosts the FastAPI application, auto-deploys on git push |
-| 7 | Browser | Any device can access the live API endpoint |
+| 1 | Yahoo Finance API | Free, no API key required |
+| 2 | GitHub Actions | Scheduled workflow runs at 10 minutes past every hour |
+| 3 | Python Script | Fetches hourly data for 50+ global stocks |
+| 4 | Supabase | Cloud PostgreSQL database stores all historical prices |
+| 5 | Weekend Detection | Pipeline automatically skips Saturday/Sunday runs |
 
-## 🚀 Live Demo
+## 🌍 Global Stock Coverage
 
-**API Endpoint:** `https://weather-automation-wine.vercel.app/`
+| Market | Count | Examples |
+|--------|-------|----------|
+| 🇺🇸 NYSE/NASDAQ | 10 | AAPL, MSFT, GOOGL, AMZN, META, NVDA |
+| 🇮🇳 NSE (India) | 10 | RELIANCE, TCS, INFY, HDFCBANK |
+| 🇦🇺 ASX (Australia) | 10 | CBA, BHP, CSL, WBC |
+| 🇯🇵 Nikkei (Japan) | 10 | 7203.T (Toyota), 6758.T (Sony) |
+| 🇬🇧 LSE (London) | 10 | HSBA, AZN, SHEL, BP |
+| 🇨🇳 Shanghai | 10 | 600519.SS (Kweichow Moutai) |
 
-Returns real-time weather data for:
-- Paris, France
-- London, UK
-- Tokyo, Japan
-- New York, USA
+**Total: 50+ stocks across 6 global markets**
 
 ## 🛠️ Technology Stack
 
 | Category | Technology | Purpose |
 |----------|-----------|---------|
 | Orchestration | GitHub Actions | Schedule and run pipeline every hour |
-| Data Extraction | Python + Requests | Fetch data from WeatherAPI |
-| Database | Supabase (PostgreSQL) | Cloud storage for historical data |
-| API Layer | FastAPI | RESTful endpoint for data access |
-| Hosting | Vercel | Serverless deployment of FastAPI |
-| Secrets Management | GitHub Secrets & .env | Secure API key storage |
+| Data Extraction | yfinance | Fetch stock data from Yahoo Finance |
+| Database | Supabase (PostgreSQL) | Cloud storage for historical prices |
+| Language | Python | ETL logic and data processing |
+| Secrets Management | GitHub Secrets | Secure database credentials |
 
 ## 📁 Project Structure
 
 ```
-weather_automation/
-├── api/
-│   └── index.py          # FastAPI application (Vercel entry point)
-├── .github/
-│   └── workflows/
-│       └── pipeline.yml  # GitHub Actions automation
-├── app.py                 # Main pipeline script
-├── requirements.txt       # Python dependencies
-├── vercel.json           # Vercel deployment config
-└── .env                  # Local environment variables (not committed)
+stock-pipeline/
+├── stock_pipeline.py    # Main pipeline script
+├── stocks.txt           # List of 50+ stock symbols
+├── requirements.txt     # Python dependencies
+└── .github/workflows/
+    └── stock-pipeline.yml  # GitHub Actions automation
+```
+
+## 📈 Sample Data Schema
+
+```sql
+CREATE TABLE stock_prices (
+    id BIGINT PRIMARY KEY,
+    symbol TEXT,
+    timestamp TIMESTAMP,
+    open_price DECIMAL(10,4),
+    high_price DECIMAL(10,4),
+    low_price DECIMAL(10,4),
+    close_price DECIMAL(10,4),
+    volume BIGINT,
+    ingested_at TIMESTAMP
+);
 ```
 
 ## 🔧 Key Features
 
-- Fully Automated - Runs every hour without manual intervention
-- Cloud-Native - No local dependencies, runs entirely on cloud infrastructure
-- Error Resilient - Per-city retry logic prevents single failures from stopping the pipeline
-- Historical Tracking - Every reading stored with timestamp for trend analysis
-- Accessible API - JSON endpoint accessible from any device worldwide
+- **🌍 Global Coverage** - 50+ stocks from 6 major markets
+- **⏰ Fully Automated** - Runs hourly during trading days
+- **📊 Historical Tracking** - Every price point stored with timestamp
+- **🚫 Weekend Detection** - Automatically skips Saturday/Sunday runs
+- **☁️ Cloud-Native** - No local dependencies, runs entirely on GitHub
+- **🛡️ Error Resilient** - Per-stock error handling prevents complete failures
 
-## 📈 Sample API Response
+## 📊 Sample Output
 
 ```json
-[
-  {
-    "id": 1,
-    "city": "Paris",
-    "temperature": 23,
-    "humidity": 36,
-    "timestamp": "2026-04-08 14:52",
-    "ingested_at": "2026-04-08T22:52:31.755765"
-  },
-  {
-    "id": 2,
-    "city": "London",
-    "temperature": 23.3,
-    "humidity": 41,
-    "timestamp": "2026-04-08 13:52",
-    "ingested_at": "2026-04-08T22:52:32.683956"
-  }
-]
+{
+    "symbol": "AAPL",
+    "timestamp": "2026-04-09 14:30:00",
+    "open_price": 258.51,
+    "high_price": 259.75,
+    "low_price": 256.53,
+    "close_price": 258.13,
+    "volume": 10222566
+}
 ```
+
+## 🚀 Deployment
+
+### GitHub Actions Schedule
+
+The pipeline runs at **10 minutes past every hour** (e.g., 1:10, 2:10, 3:10):
+
+```yaml
+on:
+  schedule:
+    - cron: "10 * * * *"
+```
+
+### Required Secrets
+
+Add these to your GitHub repository (Settings → Secrets and Variables → Actions):
+
+| Secret | Purpose |
+|--------|---------|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_KEY` | Your Supabase service role key |
 
 ## 🏗️ Architecture Decisions
 
 | Decision | Rationale |
 |----------|-----------|
-| Supabase over local DB | Cloud persistence allows API access from anywhere |
-| FastAPI over Flask | Automatic JSON serialization, built-in async support |
-| Vercel over Render | Simpler deployment, automatic HTTPS, GitHub integration |
-| GitHub Actions over Cron | Free, logs are built-in, manual trigger capability |
-| Per-city error handling | Prevents one failed city from blocking others |
+| **yfinance over paid APIs** | Free, no API key required, reliable |
+| **Supabase over local DB** | Cloud persistence allows future API access |
+| **10 minutes past hour** | Avoids top-of-hour GitHub Actions traffic |
+| **Weekend detection** | Saves compute time when markets are closed |
+| **Per-stock error handling** | Prevents one failed stock from blocking others |
 
 ## 🔜 Future Improvements
 
-- Add data visualization frontend (React/Next.js)
-- Implement temperature trend alerts
-- Add more cities and weather metrics (wind, pressure)
-- Create historical aggregation endpoints
-- Add API authentication for production use
+- [ ] Add FastAPI endpoint to serve stock data
+- [ ] Implement moving averages (7-day, 30-day)
+- [ ] Add top gainers/losers endpoint
+- [ ] Create real-time alerts for price movements
+- [ ] Add more stocks and markets
+- [ ] Build simple frontend dashboard
 
 ## 👨‍💻 Author
 
 Built as a data engineering learning project demonstrating:
-- API integration
-- Cloud database management
-- CI/CD pipelines
-- Serverless deployment
-- REST API development
+
+- API integration (yfinance)
+- Cloud database management (Supabase)
+- CI/CD pipelines (GitHub Actions)
+- Multi-market data collection
+- Error handling and resilience
 
 ---
 
-**Live API:** `https://weather-automation-wine.vercel.app/`
-
----
-
+**Live Demo:** API coming soon (FastAPI deployment in progress)
